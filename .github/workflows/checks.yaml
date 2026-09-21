@@ -1,0 +1,57 @@
+# The one route everyone shares. A contributor runs `uv sync --all-groups` and
+# `uv run pytest`; so does this job. If it passes, a stranger's clone reproduces
+# what the maintainer gets.
+#
+# Nothing here runs on a contributor's say-so. A push to main is the
+# maintainer's own. Every pull request waits in the `ci` environment until a
+# reviewer releases it, which is what stops a first-time contributor from
+# running code in this repository's Actions by opening a pull request.
+#
+# The `ci` environment needs one setting, once, in Settings -> Environments:
+# add the maintainer under "Required reviewers". Until that exists the gate is
+# declared but not enforced.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only, and no secrets are needed: the suite reaches no service.
+permissions:
+  contents: read
+
+# A second push supersedes the first rather than queueing behind it.
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    # The approval gate. A push by the maintainer passes straight through;
+    # a pull request waits for a required reviewer.
+    environment: ci
+
+    steps:
+      # Pinned to a commit: a tag can be silently repointed by its owner.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+
+      - name: Install the project and its test dependencies
+        run: uv sync --all-groups --frozen
+
+      # Network tests are deselected by default; they reach Wikipedia and
+      # Spotify and are run deliberately rather than on every push.
+      - name: Run the suite
+        run: uv run pytest
+
+      - name: Check the command line answers
+        run: uv run jukebox --help
