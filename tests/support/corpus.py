@@ -6,6 +6,7 @@ lines written three times.
 
 import datetime as dt
 
+from jukebox.charts.attribution import Attribution
 from jukebox.charts import Chart, ChartEntry, ChartFile, Corpus, EntryKind
 
 TODAY = dt.date(2026, 9, 7)
@@ -17,7 +18,6 @@ def write_ranked(corpus: Corpus, chart: Chart, year: int, *rows: tuple[int, str,
         corpus,
         chart,
         year,
-        EntryKind.RANKED,
         [
             ChartEntry(kind=EntryKind.RANKED, rank=rank, title=title, artist=artist)
             for rank, title, artist in rows
@@ -33,7 +33,6 @@ def write_number_ones(
         corpus,
         chart,
         year,
-        EntryKind.NUMBER_ONE,
         [
             ChartEntry(
                 kind=EntryKind.NUMBER_ONE,
@@ -47,7 +46,25 @@ def write_number_ones(
     )
 
 
-def _write(corpus: Corpus, chart: Chart, year: int, kind: EntryKind, entries: list) -> None:
+def _write(corpus: Corpus, chart: Chart, year: int, entries: list) -> None:
     corpus.write(
-        ChartFile(chart=chart, year=year, kind=kind, source="s", retrieved=TODAY, entries=entries)
+        ChartFile(
+            chart=chart,
+            year=year,
+            sources=[Attribution(title="s", retrieved=TODAY)],
+            entries=entries,
+        )
+    )
+
+
+def write_peaks(corpus: Corpus, chart: Chart, year: int, *rows: tuple[int, str, str]) -> None:
+    """A discography's (peak, title, artist) rows, merged in as the reader merges them."""
+    corpus.merge(
+        chart,
+        year,
+        [
+            ChartEntry(kind=EntryKind.PEAK, rank=peak, title=title, artist=artist)
+            for peak, title, artist in rows
+        ],
+        Attribution(title="a discography", retrieved=TODAY),
     )

@@ -15,6 +15,6 @@ pytestmark = pytest.mark.network
 @pytest.mark.parametrize("year", list(range(1980, 2000)))
 def test_every_declared_chart_still_parses(year):
     source = MediaWikiSource()
-    for page in Registry.billboard().resolved(year):
+    for page in Registry.published().resolved(year):
         entries = map_page(page, Grid.of(source.fetch(page.title)), year)
         assert entries, f"{page.title} parsed to nothing for {page.chart.slug} {year}"

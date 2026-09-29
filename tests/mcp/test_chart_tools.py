@@ -44,7 +44,7 @@ def test_an_artist_filter_matches_loosely(workspace):
     assert (
         query_charts(
             workspace,
-            ChartQuery(charts=["hot-100"], years=(1985, 1985), rows=EntryFilter(artist="X")),
+            ChartQuery(charts=["hot-100"], years=(1985, 1985), rows=EntryFilter(artists=["X"])),
         )["total"]
         == 2
     )

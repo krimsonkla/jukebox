@@ -5,6 +5,7 @@ from jukebox.mcp.chart_query import ChartQuery
 from jukebox.mcp.errors import (
     NoChartSource,
     NotAuthorizedYet,
+    TooManyArtists,
     TooManyYears,
 )
 from jukebox.mcp.server import build_server
@@ -17,6 +18,7 @@ __all__ = [
     "ChartQuery",
     "NoChartSource",
     "NotAuthorizedYet",
+    "TooManyArtists",
     "TooManyYears",
     "Workspace",
     "build_server",

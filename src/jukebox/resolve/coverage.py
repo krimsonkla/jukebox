@@ -45,7 +45,12 @@ class Coverage:
 
     @property
     def by_isrc(self) -> int:
-        """Answers an exact recording identifier settled."""
+        """Answers an exact recording identifier settled.
+
+        Counted over everything the cache now holds for this chart year, not
+        over this pass. A pass that spent nothing still reports the coverage it
+        found, which is what the percentage beside it means.
+        """
         return self.methods.get(Method.ISRC, 0)
 
     @property
@@ -62,9 +67,12 @@ class Coverage:
         """The report as the CLI prints it."""
         rate = (self.resolved / self.distinct * 100) if self.distinct else 0.0
         rows = f" of {self.total} rows" if self.total != self.distinct else ""
+        # What the pass cost comes first. A caller budgets lookups, and the
+        # coverage beside it counts the cache, which a pass spending nothing
+        # still fills out.
         lines = [
             f"  {self.chart:<16} {self.resolved:>3}/{self.distinct:<3} ({rate:.0f}%){rows}  "
-            f"isrc {self.by_isrc}, search {self.by_search}"
+            f"spent {self.attempted}  (held: isrc {self.by_isrc}, search {self.by_search})"
         ]
         if self.skipped:
             lines.append(f"      {self.skipped} already known missing, not looked up again")

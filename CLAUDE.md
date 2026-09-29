@@ -35,7 +35,7 @@ Consequences that bite when writing code here:
 - **There is no batch fetch.** One request per id, under a rate limiter.
 - **Playlist items live at `/playlists/{id}/items`**, and the playlist object names them
   `items`, not `tracks`.
-- **Genre means "appeared on this Billboard chart"** — never an inferred tag. Any code
+- **Genre means "appeared on this published chart"** — never an inferred tag. Any code
   that assigns a genre by any other means is a design failure.
 
 ## Three stores, three lifetimes
@@ -117,7 +117,7 @@ makes.
 ### The MCP surface returns chart words, not catalogue data
 
 Spotify's terms forbid ingesting Spotify Content into an AI model. Tool results
-carry titles and artists as Billboard published them, plus counts — never track
+carry titles and artists as the chart's publisher wrote them, plus counts — never track
 URIs, never Spotify's own metadata. `tests/mcp/test_playlist_tools.py` asserts
 it; keep that true when adding a tool.
 
@@ -169,7 +169,7 @@ write the developer's real data.
 `data/charts/` is gitignored along with `data/resolutions/` and `.jukebox/`, for
 two different reasons. Spotify content may not be stored at all. The corpus
 could be redistributed under Wikipedia's licence, but it is a machine-readable
-mirror of Billboard's compiled charts and is regenerated in seconds, so it is
+mirror of charts other people compiled and is regenerated in seconds, so it is
 treated as a build artifact. `tests/standards/` asserts both, and a test never
 depends on a committed corpus — build one in `tmp_path` from
 `tests/support/corpus.py`, or read the committed fixtures.
@@ -180,7 +180,7 @@ The developer terms allow only *temporary* caching of metadata and forbid storin
 or aggregating Spotify Content into a database; a file in git is permanent and
 redistributable. So track URIs, titles and artists from Spotify live only in the
 gitignored `.jukebox/` cache, which is disposable and rebuilt by `resolve backfill`.
-The chart corpus under `data/charts/` is Wikipedia's and Billboard's, not Spotify's,
+The chart corpus under `data/charts/` is Wikipedia's and the chart publishers', not Spotify's,
 and is committed. `NOTICE.md` carries the full position; read it before adding a new
 data file or a new service.
 

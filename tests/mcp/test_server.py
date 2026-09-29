@@ -27,6 +27,7 @@ READ_ONLY = {
     "artist_songs",
     "crossovers",
     "fetch_charts",
+    "fetch_discographies",
     "resolve_charts",
     "list_specs",
     "get_spec",
@@ -161,6 +162,12 @@ def test_every_backend_that_is_absent_refuses_by_naming_the_fix(workspace):
     server = build_server(workspace, Backends())
     assert "use_provider" in call(server, "auth_status", {})["advice"]
     assert "network access" in call(server, "fetch_charts", {"years": [1985, 1985]})["advice"]
+
+
+def test_reading_a_discography_without_network_access_says_so(workspace):
+    server = build_server(workspace, Backends())
+    asked = {"artists": ["An Act"], "years": [1985, 1985]}
+    assert "network access" in call(server, "fetch_discographies", asked)["advice"]
     assert "use_provider" in call(server, "resolve_charts", {"years": [1985, 1985]})["advice"]
     assert "use_provider" in call(server, "plan_playlist", {"name": "x"})["advice"]
 

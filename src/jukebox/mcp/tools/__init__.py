@@ -2,7 +2,7 @@
 
 from jukebox.mcp.tools.auth import auth_login, auth_status
 from jukebox.mcp.tools.charts import list_charts, query_charts
-from jukebox.mcp.tools.corpus import fetch_charts, resolve_charts
+from jukebox.mcp.tools.corpus import fetch_charts, fetch_discographies, resolve_charts
 from jukebox.mcp.tools.playlists import apply_playlist, plan_playlist
 from jukebox.mcp.tools.providers import list_providers, use_provider
 from jukebox.mcp.tools.songs import (
@@ -22,6 +22,7 @@ __all__ = [
     "build_index",
     "crossovers",
     "fetch_charts",
+    "fetch_discographies",
     "find_song",
     "get_spec",
     "index_status",

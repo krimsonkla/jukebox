@@ -3,6 +3,11 @@
 A chart that did not yet exist is a different kind of absence from one whose
 article was never written, and the report says which. Spec §Acceptance criteria 5.
 
+A chart is any list someone else published and stands behind. Most here are
+Billboard's, which measure American airplay and sales; one is a listener vote.
+What they share is that the ranking was decided elsewhere and this project only
+reads it.
+
 The member value is the slug, so a corpus file round-trips through JSON as the
 directory name it was written under rather than as an internal tuple.
 """
@@ -13,7 +18,7 @@ from jukebox.charts.errors import UnknownChart
 
 
 class Chart(enum.StrEnum):
-    """A Billboard chart, valued by its corpus directory name."""
+    """A published chart, valued by its corpus directory name."""
 
     HOT_100 = ("hot-100", 1958)
     COUNTRY = ("country", 1944)
@@ -24,6 +29,7 @@ class Chart(enum.StrEnum):
     MAINSTREAM_ROCK = ("mainstream-rock", 1981)
     MODERN_ROCK = ("modern-rock", 1988)
     LATIN = ("latin", 1986)
+    TRIPLE_J = ("triple-j", 1993)
 
     def __new__(cls, slug: str, began: int) -> "Chart":
         chart = str.__new__(cls, slug)

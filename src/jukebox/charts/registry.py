@@ -4,6 +4,10 @@ Billboard renamed charts mid-era — Hot Black Singles became Hot R&B Singles,
 and the rock charts are published a decade at a time. All of that drift lives
 here as declared data, so nothing else in the module branches on a year.
 Spec §Acceptance criteria 4, 5.
+
+A publisher is not a boundary this table sees. A chart earns a row by being a
+list someone published and an article that parses, so a listener poll sits
+beside an airplay survey and every reader treats them alike.
 """
 
 from dataclasses import dataclass
@@ -23,7 +27,7 @@ _DECADE = PageShape.DECADE
 # resolving to a page is not enough, since several years tabulate the same chart
 # under different columns. An unconfirmed guess fails at fetch time; an
 # undeclared chart is a gap the report names, which is the honest of the two.
-_BILLBOARD = (
+_PUBLISHED = (
     RegistryEntry(
         Chart.HOT_100, 1980, 1999, "Billboard Year-End Hot 100 singles of {year}", _RANKED
     ),
@@ -127,6 +131,11 @@ _BILLBOARD = (
     RegistryEntry(
         Chart.LATIN, 1990, 1999, "List of number-one Billboard Hot Latin Tracks of {year}", _ONES
     ),
+    # A listener poll rather than an airplay survey, and Australian rather than
+    # American. It earns its place by ranking a hundred deep: a chart of number
+    # ones records only what a song reached, and most of what anyone actually
+    # listened to never reached first.
+    RegistryEntry(Chart.TRIPLE_J, 1993, 1999, "Triple J's Hottest 100 of {year}", _RANKED),
 )
 
 
@@ -137,9 +146,9 @@ class Registry:
     entries: tuple[RegistryEntry, ...]
 
     @classmethod
-    def billboard(cls) -> "Registry":
-        """The Billboard charts this project covers."""
-        return cls(entries=_BILLBOARD)
+    def published(cls) -> "Registry":
+        """The charts this project covers."""
+        return cls(entries=_PUBLISHED)
 
     def resolve(self, chart: Chart, year: int) -> PageRef | Gap:
         """The page for this chart and year, or the gap explaining its absence."""

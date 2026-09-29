@@ -9,8 +9,11 @@ from jukebox.charts.entry_kind import EntryKind
 from jukebox.charts.errors import UnexpectedColumns
 from jukebox.charts.grid import Grid
 
-RANK_HEADERS = ("No.", "№")
-HEADERS = ("Title", "Artist(s)")
+# Each publisher heads the same three columns its own way, and a fourth column
+# such as a country of origin is ignored rather than refused.
+RANK_HEADERS = ("No.", "№", "#")
+TITLE_HEADERS = ("Title", "Song")
+ARTIST_HEADERS = ("Artist(s)", "Artist")
 
 
 class RankedMapper:
@@ -23,9 +26,16 @@ class RankedMapper:
         records which. Spec §Corpus on disk.
         """
         header = grid.rows[0]
-        if header[0] not in RANK_HEADERS or tuple(header[1:3]) != HEADERS:
+        if not _heads(header):
             raise UnexpectedColumns("ranked", header)
         return [entry for row in grid.rows[1:] if (entry := _row(row)) is not None]
+
+
+def _heads(header: list[str]) -> bool:
+    """Whether the first three columns rank, name and credit."""
+    if len(header) < 3:
+        return False
+    return header[0] in RANK_HEADERS and header[1] in TITLE_HEADERS and header[2] in ARTIST_HEADERS
 
 
 def _row(row: list[str]) -> ChartEntry | None:

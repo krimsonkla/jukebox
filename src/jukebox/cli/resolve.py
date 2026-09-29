@@ -20,7 +20,9 @@ Limit = Annotated[int | None, typer.Option("--limit", help="Stop after this many
 UseIsrc = Annotated[bool, typer.Option("--isrc/--no-isrc", help="Consult MusicBrainz first.")]
 Narrow = Annotated[
     list[str] | None,
-    typer.Option("--narrow", help="measure=value, repeatable: max_rank, min_weeks, artist, title."),
+    typer.Option(
+        "--narrow", help="measure=value, repeatable: max_rank, min_weeks, artists, title."
+    ),
 ]
 
 

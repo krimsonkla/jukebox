@@ -7,7 +7,7 @@ from jukebox.charts import Chart, GapReason, PageShape, Registry
 
 @pytest.fixture(name="registry")
 def _registry():
-    return Registry.billboard()
+    return Registry.published()
 
 
 def test_rnb_resolves_through_its_era_name(registry):

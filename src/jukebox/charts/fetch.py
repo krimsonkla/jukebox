@@ -7,11 +7,10 @@ corpus, with the gaps carried through to the report rather than dropped.
 import datetime as dt
 import pathlib
 
-from jukebox.charts.chart_file import ChartFile
+from jukebox.charts.attribution import Attribution
 from jukebox.charts.chart_source import ChartSource
 from jukebox.charts.corpus import Corpus
 from jukebox.charts.entry import ChartEntry
-from jukebox.charts.entry_kind import EntryKind
 from jukebox.charts.grid import Grid
 from jukebox.charts.mappers import DecadeMapper, NumberOnesMapper, RankedMapper
 from jukebox.charts.page_ref import PageRef
@@ -41,15 +40,8 @@ class Fetch:
     def _one(self, ref: PageRef, year: int) -> Resolved:
         grid = Grid.of(self._source.fetch(ref.title))
         entries = map_page(ref, grid, year)
-        self._corpus.write(
-            ChartFile(
-                chart=ref.chart,
-                year=year,
-                kind=entries[0].kind if entries else EntryKind.NUMBER_ONE,
-                source=ref.title,
-                retrieved=self._today,
-                entries=entries,
-            )
+        self._corpus.refresh(
+            ref.chart, year, entries, Attribution(title=ref.title, retrieved=self._today)
         )
         return Resolved(chart=ref.chart, title=ref.title, entries=len(entries))
 

@@ -4,6 +4,7 @@ import datetime as dt
 
 import pytest
 
+from jukebox.charts.attribution import Attribution
 from jukebox.charts import Chart, ChartEntry, ChartFile, Corpus, EntryKind
 from jukebox.songs import Identity, Index, IndexStore
 
@@ -30,9 +31,7 @@ def write(corpus: Corpus, chart: Chart, year: int, entries: list[ChartEntry]) ->
         ChartFile(
             chart=chart,
             year=year,
-            kind=entries[0].kind,
-            source="a page",
-            retrieved=dt.date(2026, 1, 1),
+            sources=[Attribution(title="a page", retrieved=dt.date(2026, 1, 1))],
             entries=entries,
         )
     )

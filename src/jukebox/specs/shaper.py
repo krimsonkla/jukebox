@@ -37,6 +37,10 @@ def _ordered(selected: list[Selected], shape: Shape) -> list[Selected]:
         shuffled = list(selected)
         random.Random(shape.seed).shuffle(shuffled)
         return shuffled
+    if shape.order is Ordering.PEAK:
+        return sorted(
+            selected, key=lambda chosen: (chosen.entry.position, chosen.year, chosen.title)
+        )
     if shape.order in (Ordering.YEAR, Ordering.RELEASE):
         # A release ordering is settled at resolution, but the cap and the size
         # are settled here, so they are applied to the closest thing the corpus
@@ -47,11 +51,11 @@ def _ordered(selected: list[Selected], shape: Shape) -> list[Selected]:
 
 
 def _within(chosen: Selected) -> tuple:
-    """A chart's own order: rank where it ranks, otherwise date."""
+    """A chart's own order: the position where the row ranks, otherwise the date."""
     entry = chosen.entry
-    if entry.kind is EntryKind.RANKED:
-        return (0, entry.rank, "")
-    return (1, 0, entry.reached.isoformat() if entry.reached else "")
+    if entry.kind is EntryKind.NUMBER_ONE:
+        return (1, 0, entry.reached.isoformat() if entry.reached else "")
+    return (0, entry.rank, "")
 
 
 def _capped(ordered: list[Selected], limit: int | None) -> tuple[list[Selected], int]:

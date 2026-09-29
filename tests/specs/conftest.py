@@ -4,7 +4,7 @@ import pytest
 
 from jukebox.charts import Corpus
 
-from tests.support.corpus import write_number_ones, write_ranked
+from tests.support.corpus import write_number_ones, write_peaks, write_ranked
 
 
 @pytest.fixture(name="corpus")
@@ -24,5 +24,13 @@ def _ranked(corpus):
 def _number_ones(corpus):
     def write(chart, year, *rows) -> None:
         write_number_ones(corpus, chart, year, *rows)
+
+    return write
+
+
+@pytest.fixture(name="peaks")
+def _peaks(corpus):
+    def write(chart, year, *rows) -> None:
+        write_peaks(corpus, chart, year, *rows)
 
     return write

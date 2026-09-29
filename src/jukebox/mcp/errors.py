@@ -33,6 +33,16 @@ class TooManyYears(JukeboxError):
         )
 
 
+class TooManyArtists(JukeboxError):
+    """One call named more artists than a call should read in turn."""
+
+    def __init__(self, named: int, most: int) -> None:
+        super().__init__(
+            f"{named} artists is too many for one call",
+            f"name at most {most} at a time, then call again for the rest",
+        )
+
+
 class NoProviderChosen(JukeboxError):
     """Nothing has told this session which service and application to act as."""
 
