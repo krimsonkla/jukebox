@@ -105,6 +105,29 @@ def test_the_numero_sign_is_read_as_a_rank_header():
     assert RankedMapper().map(Grid.of(numero))[0].rank == 1
 
 
+def test_a_poll_heads_the_same_three_columns_its_own_way():
+    # Triple J writes #, Song and Artist where Billboard writes No., Title and
+    # Artist(s), and adds a fourth column the mapper has no use for.
+    poll = (
+        '<table class="wikitable">'
+        "<tr><th>#</th><th>Song</th><th>Artist</th><th>Country of origin</th></tr>"
+        '<tr><td>6</td><td>"Killing in the Name"</td><td>Rage Against the Machine</td>'
+        "<td>United States</td></tr></table>"
+    )
+    entry = RankedMapper().map(Grid.of(poll))[0]
+    assert (entry.rank, entry.title, entry.artist) == (
+        6,
+        "Killing in the Name",
+        "Rage Against the Machine",
+    )
+
+
+def test_a_table_too_narrow_to_rank_name_and_credit_is_refused():
+    narrow = '<table class="wikitable"><tr><th>#</th><th>Song</th></tr></table>'
+    with pytest.raises(UnexpectedColumns, match="ranked"):
+        RankedMapper().map(Grid.of(narrow))
+
+
 def table(body: str) -> str:
     """A minimal wikitable wrapping `body`."""
     return f'<table class="wikitable">{body}</table>'

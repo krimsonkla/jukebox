@@ -28,3 +28,31 @@ def test_shaping_is_applied_to_what_was_selected(corpus, ranked):
     tracklist = Evaluate(corpus).tracklist(spec)
     assert [e.title for e in tracklist.entries] == ["A"]
     assert tracklist.considered == 3
+
+
+def test_a_selection_sees_a_chart_article_and_a_discography_as_one_chart(
+    corpus, number_ones, peaks
+):
+    # What the chart's own article recorded, and what an artist's article says
+    # about the records that never reached the top, are the same chart.
+    number_ones(Chart.MAINSTREAM_ROCK, 1993, ("Cryin'", "Aerosmith", 6, 3))
+    peaks(Chart.MAINSTREAM_ROCK, 1993, (7, "Rooster", "Alice in Chains"))
+    spec = Spec(
+        name="Rock 1993",
+        select=Selection(charts=[Chart.MAINSTREAM_ROCK], years=(1993, 1993)),
+    )
+    chosen = Evaluate(corpus).tracklist(spec)
+    assert sorted(entry.title for entry in chosen.entries) == ["Cryin'", "Rooster"]
+
+
+def test_a_peak_ceiling_narrows_a_discography_without_touching_the_number_ones(
+    corpus, number_ones, peaks
+):
+    number_ones(Chart.MAINSTREAM_ROCK, 1993, ("Cryin'", "Aerosmith", 6, 3))
+    peaks(Chart.MAINSTREAM_ROCK, 1993, (7, "Rooster", "Alice in Chains"), (40, "Deep", "A Band"))
+    spec = Spec(
+        name="Rock 1993",
+        select=Selection(charts=[Chart.MAINSTREAM_ROCK], years=(1993, 1993), max_peak=10),
+    )
+    chosen = Evaluate(corpus).tracklist(spec)
+    assert sorted(entry.title for entry in chosen.entries) == ["Cryin'", "Rooster"]

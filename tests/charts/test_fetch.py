@@ -19,7 +19,7 @@ def _modern_rock_only() -> Registry:
     return Registry(
         entries=tuple(
             entry
-            for entry in Registry.billboard().entries
+            for entry in Registry.published().entries
             if entry.chart is Chart.MODERN_ROCK and entry.covers(1990)
         )
     )
@@ -34,8 +34,8 @@ def test_a_decade_chart_is_fetched_parsed_and_written(tmp_path, fixture_source):
 
     assert [found.chart for found in report.resolved] == [Chart.MODERN_ROCK]
     written = corpus.read(Chart.MODERN_ROCK, 1990)
-    assert written.kind is EntryKind.NUMBER_ONE
-    assert written.retrieved == dt.date(2026, 9, 6)
+    assert all(entry.kind is EntryKind.NUMBER_ONE for entry in written.entries)
+    assert written.sources[0].retrieved == dt.date(2026, 9, 6)
     assert written.entries[0].title == "House"
     assert all(entry.reached.year == 1990 for entry in written.entries)
 

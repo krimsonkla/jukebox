@@ -63,7 +63,7 @@ def test_shaping_a_stored_spec_records_only_what_was_asked_for(home):
 
 @pytest.mark.usefixtures("workspace")
 def test_shaping_leaves_the_selection_alone(home):
-    add_one("--max-rank", "1")
+    add_one("--narrow", "max_rank=1")
     runner.invoke(app, ["spec", "shape", "Best of 85", "--order", "year"])
     body = yaml.safe_load((home.specs / "best-of-85.yaml").read_text())
     assert body["select"]["max_rank"] == 1
@@ -123,3 +123,28 @@ def test_listing_shows_stored_specs():
 @pytest.mark.usefixtures("workspace")
 def test_listing_an_empty_workspace_says_so():
     assert "no specs yet" in runner.invoke(app, ["spec", "list"]).output
+
+
+@pytest.mark.usefixtures("workspace")
+def test_naming_one_act_keeps_only_its_rows(home):
+    result = add_one("--narrow", "artists=Madonna")
+    assert result.exit_code == 0, result.output
+    assert "Like a Virgin" in result.output
+    assert "Careless Whisper" not in result.output
+    assert yaml.safe_load((home.specs / "best-of-85.yaml").read_text())["select"]["artists"] == [
+        "Madonna"
+    ]
+
+
+@pytest.mark.usefixtures("workspace")
+def test_naming_several_acts_keeps_a_row_crediting_any_of_them():
+    result = add_one("--narrow", "artists=Madonna", "--narrow", "artists=George Michael")
+    assert result.exit_code == 0, result.output
+    assert "2 tracks" in result.output
+
+
+@pytest.mark.usefixtures("workspace")
+def test_naming_no_act_leaves_the_selection_alone(home):
+    add_one()
+    stored = yaml.safe_load((home.specs / "best-of-85.yaml").read_text())
+    assert "artists" not in stored["select"]

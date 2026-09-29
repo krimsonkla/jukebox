@@ -27,3 +27,56 @@ def test_a_missing_page_fails_loudly(tmp_path):
         ["charts", "fetch", "--year", "1986", "--source", "fixture", "--out", str(tmp_path)],
     )
     assert result.exit_code != 0
+
+
+def test_a_discography_is_read_into_the_corpus(tmp_path):
+    result = runner.invoke(
+        app,
+        [
+            "charts",
+            "discography",
+            "--artist",
+            "A Fictional Act",
+            "--years",
+            "1980-1999",
+            "--source",
+            "fixture",
+            "--out",
+            str(tmp_path),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert "4 placings, 4 new" in result.output
+    assert "mainstream-rock 3" in result.output
+    written = json.loads((tmp_path / "mainstream-rock" / "1985.json").read_text())
+    assert [entry["title"] for entry in written["entries"]] == [
+        "The Loud One",
+        "The Promo",
+        "The Quiet One",
+    ]
+    assert written["sources"] == [
+        {"title": "A Fictional Act discography", "retrieved": written["sources"][0]["retrieved"]}
+    ]
+
+
+def test_an_act_with_no_article_is_named_and_the_rest_are_still_read(tmp_path):
+    result = runner.invoke(
+        app,
+        [
+            "charts",
+            "discography",
+            "--artist",
+            "Nobody At All",
+            "--artist",
+            "A Fictional Act",
+            "--years",
+            "1980-1999",
+            "--source",
+            "fixture",
+            "--out",
+            str(tmp_path),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert "Nobody At All: no article at Nobody At All discography" in result.output
+    assert "A Fictional Act: 4 placings" in result.output

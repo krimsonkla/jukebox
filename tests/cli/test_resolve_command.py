@@ -5,6 +5,7 @@ import datetime as dt
 import pytest
 from typer.testing import CliRunner
 
+from jukebox.charts.attribution import Attribution
 from jukebox.charts import Chart, ChartEntry, ChartFile, Corpus, EntryKind
 from jukebox.cli import app
 from jukebox.oauth.errors import NotAuthorized
@@ -53,8 +54,7 @@ def _corpus_dir(home):
             chart=Chart.HOT_100,
             year=1985,
             kind=EntryKind.RANKED,
-            source="s",
-            retrieved=TODAY,
+            sources=[Attribution(title="s", retrieved=TODAY)],
             entries=[ChartEntry(kind=EntryKind.RANKED, title="Take On Me", artist="a-ha", rank=1)],
         )
     )

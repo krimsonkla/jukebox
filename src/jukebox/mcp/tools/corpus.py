@@ -9,9 +9,10 @@ machine-local cache.
 
 from jukebox.charts.chart import Chart, chart_named
 from jukebox.charts.chart_source import ChartSource
+from jukebox.charts.discography import Discography
 from jukebox.charts.fetch import Fetch
 from jukebox.charts.registry import Registry
-from jukebox.mcp.errors import TooManyYears
+from jukebox.mcp.errors import TooManyArtists, TooManyYears
 from jukebox.mcp.resolve_request import ResolveRequest
 from jukebox.mcp.workspace import Workspace
 from jukebox.net.errors import Throttled, TransientFailure
@@ -20,6 +21,7 @@ from jukebox.resolve.backfill import Backfill
 from jukebox.resolve.resolver import Resolver
 
 MAX_YEARS = 20
+MAX_ARTISTS = 25
 DEFAULT_LIMIT = 200
 
 
@@ -35,7 +37,7 @@ def fetch_charts(workspace: Workspace, source: ChartSource, years: tuple[int, in
     # shape it was promised is not the shape it gets.
     fetched = []
     for year in range(years[0], years[1] + 1):
-        report = Fetch(Registry.billboard(), source, workspace.corpus).year(year)
+        report = Fetch(Registry.published(), source, workspace.corpus).year(year)
         fetched.append(
             {
                 "year": year,
@@ -44,6 +46,35 @@ def fetch_charts(workspace: Workspace, source: ChartSource, years: tuple[int, in
             }
         )
     return {"fetched": fetched}
+
+
+def fetch_discographies(
+    workspace: Workspace, source: ChartSource, artists: list[str], years: tuple[int, int]
+) -> dict:
+    """Fetch what artists' own articles say about where their records got to.
+
+    A chart published only as number ones records nothing about a single that
+    stopped at seven, and most singles stop somewhere. This reads that depth
+    into the same corpus files, so a selection over the chart sees both.
+
+    Reads Wikipedia and writes the repository's chart files. Does not touch the
+    user's account.
+    """
+    _bounded(years)
+    _countable(artists)
+    reading = Discography(source, workspace.corpus)
+    return {
+        "read": [
+            {
+                "artist": report.artist,
+                "page": report.title,
+                "placings": report.found,
+                "added": {chart.slug: count for chart, count in report.added.items()},
+                "no_article": report.missing,
+            }
+            for report in (reading.artist(name, years) for name in artists)
+        ]
+    }
 
 
 def resolve_charts(workspace: Workspace, catalog: MusicCatalog, request: ResolveRequest) -> dict:
@@ -112,3 +143,13 @@ def _charts(charts: list[str] | None) -> list[Chart]:
 def _bounded(years: tuple[int, int]) -> None:
     if years[1] - years[0] + 1 > MAX_YEARS:
         raise TooManyYears(years)
+
+
+def _countable(artists: list[str]) -> None:
+    """One call is one page per artist, fetched in turn and answered at the end.
+
+    A list long enough to outlast the caller's patience loses the whole report
+    although every write already landed, so the ceiling is named up front.
+    """
+    if len(artists) > MAX_ARTISTS:
+        raise TooManyArtists(len(artists), MAX_ARTISTS)

@@ -66,6 +66,36 @@ def test_a_shuffle_is_the_same_every_time_for_a_seed():
     assert [e.title for e in first.entries] == [e.title for e in again.entries]
 
 
+def test_peak_order_puts_the_higher_position_first():
+    chosen = [ranked_at(40, "C", "z"), ranked_at(2, "A", "x"), ranked_at(11, "B", "y")]
+    shaped = Shaper().shape(spec_with(order=Ordering.PEAK), chosen)
+    assert [entry.title for entry in shaped.entries] == ["A", "B", "C"]
+
+
+def test_peak_order_reads_a_number_one_as_first_place():
+    # A number-ones list states the song reached first, which is a published
+    # position even though the page prints no column of them.
+    chosen = [ranked_at(2, "B", "y"), number_one(6, "A", "x")]
+    shaped = Shaper().shape(spec_with(order=Ordering.PEAK), chosen)
+    assert [entry.title for entry in shaped.entries] == ["A", "B"]
+
+
+def test_peak_order_reads_a_peak_row_as_the_place_it_reached():
+    peaked = Selected(
+        chart=Chart.MAINSTREAM_ROCK,
+        year=1993,
+        entry=ChartEntry(kind=EntryKind.PEAK, rank=7, title="A", artist="x"),
+    )
+    shaped = Shaper().shape(spec_with(order=Ordering.PEAK), [ranked_at(40, "B", "y"), peaked])
+    assert [entry.title for entry in shaped.entries] == ["A", "B"]
+
+
+def test_peak_order_breaks_a_tie_on_the_earlier_year():
+    chosen = [ranked_at(5, "B", "y", year=1986), ranked_at(5, "A", "x", year=1985)]
+    shaped = Shaper().shape(spec_with(order=Ordering.PEAK), chosen)
+    assert [entry.title for entry in shaped.entries] == ["A", "B"]
+
+
 def test_a_different_seed_gives_a_different_order():
     chosen = [ranked_at(i, f"T{i}", f"a{i}") for i in range(1, 12)]
     one = Shaper().shape(spec_with(order=Ordering.SHUFFLE, seed=1), chosen)

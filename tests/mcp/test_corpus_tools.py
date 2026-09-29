@@ -5,9 +5,9 @@ import pathlib
 import pytest
 
 from jukebox.charts import Chart, FixtureSource
-from jukebox.mcp import TooManyYears
+from jukebox.mcp import TooManyArtists, TooManyYears
 from jukebox.mcp.resolve_request import ResolveRequest
-from jukebox.mcp.tools import fetch_charts, resolve_charts
+from jukebox.mcp.tools import fetch_charts, fetch_discographies, resolve_charts
 from jukebox.net.errors import Throttled, TransientFailure
 from jukebox.ports import TrackMatch
 
@@ -40,6 +40,24 @@ def test_fetching_writes_chart_files_into_the_corpus(workspace, source):
     assert found["fetched"][0]["year"] == 1985
     assert found["fetched"][0]["charts"]["hot-100"] == 100
     assert workspace.corpus.path(Chart.HOT_100, 1985).exists()
+
+
+def test_a_discography_is_read_into_the_corpus(workspace, source):
+    read = fetch_discographies(workspace, source, ["A Fictional Act"], (1980, 1999))["read"][0]
+    assert read["page"] == "A Fictional Act discography"
+    assert read["placings"] == 4
+    assert read["added"] == {"mainstream-rock": 3, "modern-rock": 1}
+    assert workspace.corpus.path(Chart.MAINSTREAM_ROCK, 1985).exists()
+
+
+def test_a_discography_span_is_bounded_like_any_other(workspace, source):
+    with pytest.raises(TooManyYears):
+        fetch_discographies(workspace, source, ["A Fictional Act"], (1900, 1999))
+
+
+def test_a_list_of_artists_too_long_to_answer_in_one_call_is_refused(workspace, source):
+    with pytest.raises(TooManyArtists):
+        fetch_discographies(workspace, source, ["An Act"] * 26, (1980, 1999))
 
 
 def test_fetching_names_the_charts_it_cannot_cover_and_why(workspace, source):

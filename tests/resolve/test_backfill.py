@@ -91,6 +91,21 @@ def test_the_report_states_the_rate_and_the_method_split(parts):
     assert "1/1" in rendered and "100%" in rendered and "search 1" in rendered
 
 
+def test_the_report_leads_with_what_the_pass_spent(parts):
+    _, _, backfill = parts("Take On Me")
+    assert "spent 1" in backfill.year(Chart.HOT_100, 1985).render()
+
+
+def test_a_second_pass_reports_spending_nothing_while_still_reporting_coverage(parts):
+    _, _, backfill = parts("Take On Me")
+    backfill.year(Chart.HOT_100, 1985)
+    # The cache answers for the year, so the coverage holds and the cost is
+    # zero. A report showing only the coverage reads as another full price.
+    rendered = backfill.year(Chart.HOT_100, 1985).render()
+    assert "spent 0" in rendered
+    assert "1/1" in rendered and "100%" in rendered
+
+
 def test_a_confidence_is_recorded_for_a_searched_match(parts):
     _, store, backfill = parts("Take On Me")
     backfill.year(Chart.HOT_100, 1985)

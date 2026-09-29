@@ -27,15 +27,35 @@ class Grid:
 
     @classmethod
     def of(cls, html: str) -> "Grid":
-        """The first wikitable in a rendered page."""
-        tables = lxml.html.fromstring(html).xpath('//table[contains(@class,"wikitable")]')
-        if not tables:
+        """The first wikitable in a rendered page.
+
+        Only that one is expanded. A chart page carries the chart first and a
+        dozen navigation tables after it, and expanding those to discard them
+        is work done for nothing.
+        """
+        found = _tables(html)
+        if not found:
             raise NoTableFound("the rendered page")
-        return cls(rows=_expand(tables[0]))
+        return cls(rows=_expand(found[0]))
+
+    @classmethod
+    def every(cls, html: str) -> list["Grid"]:
+        """Every wikitable in a rendered page, in the order they appear.
+
+        A chart page holds the one table that is the chart. A discography holds
+        a dozen, of which several carry chart positions, so a reader that took
+        only the first would drop most of what the page publishes.
+        """
+        return [cls(rows=_expand(table)) for table in _tables(html)]
 
     def widths(self) -> set[int]:
         """The distinct row widths; a dense grid has exactly one."""
         return {len(row) for row in self.rows}
+
+
+def _tables(html: str) -> list[HtmlElement]:
+    """Every wikitable element, unexpanded."""
+    return lxml.html.fromstring(html).xpath('//table[contains(@class,"wikitable")]')
 
 
 def _expand(table: HtmlElement) -> list[list[str]]:

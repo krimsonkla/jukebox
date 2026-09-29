@@ -125,6 +125,25 @@ def _corpus(server: FastMCP, workspace: Workspace, backends: Backends) -> None:
         return run(fetch)
 
     @server.tool(annotations=FILLS_CACHE)
+    def fetch_discographies(artists: list[str], years: list[int] | None = None) -> dict:
+        """Fetch what artists' own articles say about where their records got to.
+
+        A chart published only as number ones names the songs that reached
+        first and nothing else, so an act with a dozen hits that peaked in the
+        teens looks like an act with none. This reads those placings into the
+        same corpus files, and a selection over the chart then sees both.
+
+        Name artists as the charts credit them. Reads Wikipedia and writes the
+        corpus cache; does not touch the user's account. Up to twenty years.
+        """
+
+        def fetch() -> dict:
+            bounded = span(years)
+            return tools.fetch_discographies(workspace, _source(backends), artists, bounded)
+
+        return run(fetch)
+
+    @server.tool(annotations=FILLS_CACHE)
     def resolve_charts(
         years: list[int] | None = None,
         charts: list[str] | None = None,
@@ -139,7 +158,7 @@ def _corpus(server: FastMCP, workspace: Workspace, backends: Backends) -> None:
         machine-local cache, not the user's account.
 
         `narrow` takes `measure=value` strings — `max_rank=40`, `min_weeks=2`,
-        `artist=`, `title=` — and applies before a lookup is spent: resolving a
+        `artists=`, `title=` — and applies before a lookup is spent: resolving a
         whole chart to serve a spec that takes its top forty pays for rows
         nobody asked about. `max_rank` narrows a year-end chart and leaves a
         number-ones chart alone, because every row of one was already first;
@@ -180,10 +199,11 @@ def _charts(server: FastMCP, workspace: Workspace) -> None:
         """Chart entries matching a query.
 
         `narrow` takes `measure=value` strings — `max_rank=40`, `min_weeks=2`,
-        `artist=Prince`, `title=Kiss`. A measure a row does not publish never
+        `artists=Prince`, `title=Kiss`. A measure a row does not publish never
         excludes it: `max_rank` narrows a year-end chart and leaves a
         number-ones chart alone, because every row of one was already first,
-        and `min_weeks` is the reverse.
+        and `min_weeks` is the reverse. Repeating `artists=` collects, so
+        `artists=Nirvana artists=Metallica` keeps rows crediting either.
         """
         return run(
             lambda: tools.query_charts(

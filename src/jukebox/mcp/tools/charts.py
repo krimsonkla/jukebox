@@ -57,6 +57,11 @@ def _rows(workspace: Workspace, chart: Chart, year: int, wanted: EntryFilter) ->
                 "year": year,
                 "title": entry.title[:FIELD],
                 "artist": entry.artist[:FIELD],
+                # Named, because one file can hold rows of more than one
+                # measure and a bare number does not say which. A year-end rank
+                # of three means the third biggest song of the year; a peak of
+                # three means it got that high for a week.
+                "measure": entry.kind.value,
                 "rank": entry.rank,
                 "weeks_at_number_one": entry.weeks,
             }

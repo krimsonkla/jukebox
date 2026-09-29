@@ -5,6 +5,7 @@ from typing import Annotated
 import typer
 
 from jukebox.charts import Chart, Corpus
+from jukebox.charts.entry_filter import EntryFilter
 from jukebox.charts.fetch import corpus_root
 from jukebox.paths import Paths
 from jukebox.specs import (
@@ -23,8 +24,12 @@ commands = typer.Typer(help="Describe playlists and preview what they select.")
 Name = Annotated[str, typer.Argument(help="The spec's name.")]
 ChartsOpt = Annotated[list[str], typer.Option("--chart", help="Chart slug; repeatable.")]
 Years = Annotated[str, typer.Option("--years", help="A year, 1985, or a span, 1980-1989.")]
-MaxRank = Annotated[int | None, typer.Option("--max-rank", help="Ranked entries only.")]
-MinWeeks = Annotated[int | None, typer.Option("--min-weeks", help="Number ones only.")]
+Narrow = Annotated[
+    list[str] | None,
+    typer.Option(
+        "--narrow", help="measure=value, repeatable: max_rank, min_weeks, artists, title."
+    ),
+]
 Size = Annotated[int | None, typer.Option("--size", help="How many tracks.")]
 PerArtist = Annotated[int | None, typer.Option("--max-per-artist", help="Cap per artist.")]
 Order = Annotated[Ordering | None, typer.Option("--order", help="How to sequence.")]
@@ -32,18 +37,20 @@ Seed = Annotated[int | None, typer.Option("--seed", help="Fixes a shuffle.")]
 
 
 @commands.command("add")
-def add(
-    name: Name, chart: ChartsOpt, years: Years, max_rank: MaxRank = None, min_weeks: MinWeeks = None
-) -> None:
-    """Write a spec that selects from the charts, then preview it."""
+def add(name: Name, chart: ChartsOpt, years: Years, narrow: Narrow = None) -> None:
+    """Write a spec that selects from the charts, then preview it.
+
+    The narrowing measures are the charts' own, and are read by the same rule
+    the query and the backfill read them by. Repeating one collects, so
+    `--narrow artists=Nirvana --narrow artists=Metallica` keeps either.
+    """
     spec = _guard(
         lambda: Spec(
             name=name,
             select=Selection(
                 charts=[Chart(slug) for slug in chart],
                 years=parse_years(years),
-                max_rank=max_rank,
-                min_weeks=min_weeks,
+                **EntryFilter.named(narrow).model_dump(exclude_defaults=True),
             ),
         )
     )
